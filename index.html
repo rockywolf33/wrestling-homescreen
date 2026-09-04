@@ -43,6 +43,20 @@
   #safe-top{height:env(safe-area-inset-top,0px);flex:none;background:#26603A}
   #shell{flex:1;position:relative;padding-bottom:env(safe-area-inset-bottom,0px)}
   iframe{width:100%;height:100%;border:0;display:block}
+  /* Framed, the app takes several seconds longer to paint than it does on its own, and
+     launched from the home screen there is no browser chrome to explain the wait — just a
+     blank screen that reads as broken. Hold a branded splash over it until it is up. */
+  #splash{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+          justify-content:center;gap:14px;background:linear-gradient(176deg,#26603A 0%,#1F4D2C 55%,#173A21 100%);
+          transition:opacity .45s ease-out}
+  #splash.gone{opacity:0;pointer-events:none}
+  #splash img{width:64px;height:64px;border-radius:14px;
+              box-shadow:0 6px 20px rgba(0,0,0,.28)}
+  #splash p{margin:0;color:#fff;font:700 16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+  #splash span{color:rgba(255,255,255,.72);font:700 10px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+               letter-spacing:1.3px;text-transform:uppercase}
+  @media (prefers-reduced-motion:reduce){ #splash{transition:none} }
+
   #fallback{position:absolute;inset:0;display:none;align-items:center;justify-content:center;
             padding:28px;text-align:center;color:#fff;background:#1F4D2C;
             font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
@@ -55,6 +69,11 @@
 <div id="shell">
   <iframe id="app" title="My Development"
           src="https://script.google.com/macros/s/AKfycbysiW9F1YIJU3zvFKyfzINLoiPDeL-oi_3fyi0LlKRQwIRsyug3sgBCA8lunHCoVEd_Gw/exec"></iframe>
+  <div id="splash">
+    <img src="icons/apple-touch-icon.png" alt="">
+    <p>My Development</p>
+    <span>Stanford Wrestling</span>
+  </div>
   <div id="fallback">
     <p>Taking a while to load.<br>
     <a id="direct" href="https://script.google.com/macros/s/AKfycbysiW9F1YIJU3zvFKyfzINLoiPDeL-oi_3fyi0LlKRQwIRsyug3sgBCA8lunHCoVEd_Gw/exec">Open it directly</a></p>
@@ -66,7 +85,18 @@
    after six seconds something is wrong — a stale deployment, no signal — and a wrestler
    should get a way through rather than a green void. */
 var loaded = false;
-document.getElementById('app').addEventListener('load', function(){ loaded = true; });
+var splash = document.getElementById('splash');
+function drop(){ splash.classList.add('gone'); }
+
+/* The frame fires load when Google's wrapper arrives, which is well before the app inside
+   it has painted, so the splash waits a beat past that rather than lifting on the event.
+   The unconditional timer is the important half: nothing here may leave a wrestler stuck
+   behind a splash he cannot dismiss, whatever the network did. */
+document.getElementById('app').addEventListener('load', function(){
+  loaded = true;
+  setTimeout(drop, 2200);
+});
+setTimeout(drop, 12000);
 setTimeout(function(){
   if (!loaded) document.getElementById('fallback').style.display = 'flex';
 }, 6000);
