@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+<!-- This page is public because it has to be, but it is for one team of thirty and has no
+     reason to be in a search index. -->
+<meta name="robots" content="noindex, nofollow">
+
+<title>My Development</title>
+
+<!-- Why this page exists.
+
+     The app itself is an Apps Script web app, and Apps Script serves it inside Google's own
+     wrapper document — our HTML is the iframe, not the top-level page. iOS reads the home
+     screen icon from the top-level document only (or from /apple-touch-icon.png at the site
+     root, which is Google's root, not ours), and HtmlService strips link tags out of our file
+     and offers no apple-touch-icon method. So there is nowhere in the Apps Script project to
+     put an icon.
+
+     This page is the top-level document we do control. It holds the icons and the manifest,
+     and frames the real app full-bleed. Wrestlers add THIS to their home screen. -->
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Development">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1F4D2C">
+
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+
+<style>
+  html,body{margin:0;height:100%;background:#1F4D2C;overscroll-behavior:none}
+  body{display:flex;flex-direction:column}
+  /* The status bar is translucent, so the app would otherwise run under the clock. env()
+     only resolves in the top-level document — which is this page, not the framed app — so
+     the padding has to live here. In Safari with browser chrome the inset is 0 and this
+     collapses to nothing. */
+  #safe-top{height:env(safe-area-inset-top,0px);flex:none;background:#26603A}
+  #shell{flex:1;position:relative;padding-bottom:env(safe-area-inset-bottom,0px)}
+  iframe{width:100%;height:100%;border:0;display:block}
+  #fallback{position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+            padding:28px;text-align:center;color:#fff;background:#1F4D2C;
+            font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+  #fallback a{color:#fff;font-weight:700}
+</style>
+</head>
+<body>
+
+<div id="safe-top"></div>
+<div id="shell">
+  <iframe id="app" title="My Development"
+          src="https://script.google.com/macros/s/AKfycbysiW9F1YIJU3zvFKyfzINLoiPDeL-oi_3fyi0LlKRQwIRsyug3sgBCA8lunHCoVEd_Gw/exec"></iframe>
+  <div id="fallback">
+    <p>Taking a while to load.<br>
+    <a id="direct" href="https://script.google.com/macros/s/AKfycbysiW9F1YIJU3zvFKyfzINLoiPDeL-oi_3fyi0LlKRQwIRsyug3sgBCA8lunHCoVEd_Gw/exec">Open it directly</a></p>
+  </div>
+</div>
+
+<script>
+/* Cross-origin means we cannot inspect the frame, only whether it fired load. If it has not
+   after six seconds something is wrong — a stale deployment, no signal — and a wrestler
+   should get a way through rather than a green void. */
+var loaded = false;
+document.getElementById('app').addEventListener('load', function(){ loaded = true; });
+setTimeout(function(){
+  if (!loaded) document.getElementById('fallback').style.display = 'flex';
+}, 6000);
+</script>
+</body>
+</html>
